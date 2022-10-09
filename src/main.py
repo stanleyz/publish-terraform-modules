@@ -17,7 +17,7 @@ def main(config: Config) -> str:
 
     registry = Registry(config.namespace, config.token)
 
-    for module_folder in config.modules_list:
+    for module_name, module_folder in config.modules_list.items():
 
         module_folder = os.path.join(WORKDIR, module_folder)
 
@@ -27,8 +27,6 @@ def main(config: Config) -> str:
             )
             Log.end_group()
             continue
-
-        module_name = os.path.basename(module_folder)
 
         Log.start_group(f"Module {module_name}")
 

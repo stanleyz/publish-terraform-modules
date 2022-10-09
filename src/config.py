@@ -13,7 +13,7 @@ LOGGER = logging.getLogger()
 
 @dataclass
 class Config:
-    modules_list: list
+    modules_list: map
     provider: str
     namespace: str
     base_version: str
