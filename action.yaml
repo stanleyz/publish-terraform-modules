@@ -5,8 +5,11 @@ branding:
   icon: "terminal"
   color: "red"
 inputs:
-  modules_list:
-    description: "List of modules paths to push to the registry, e.g. ['./module-1','./module-2']"
+  module_name:
+    description: "The module name that appears on Terrafrom registry"
+    required: true
+  module_folder:
+    description: "The folder that hosts this module"
     required: true
   provider:
     description: "Specifies the Terraform provider that this module is used for. May contain alphanumeric characters. Maximum length is 64 characters."
@@ -37,7 +40,8 @@ runs:
   using: "docker"
   image: "./Dockerfile"
   args:
-    - ${{ inputs.modules_list }}
+    - ${{ inputs.module_name}}
+    - ${{ inputs.module_folder}}
     - ${{ inputs.provider }}
     - ${{ inputs.namespace }}
     - ${{ inputs.registry-name }}

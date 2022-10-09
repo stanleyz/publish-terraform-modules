@@ -17,57 +17,54 @@ def main(config: Config) -> str:
 
     registry = Registry(config.namespace, config.token)
 
-    for module_name, module_folder in config.modules_list.items():
+    module_folder = os.path.join(WORKDIR, config.module_folder)
+    module_name = config.module_name
 
-        module_folder = os.path.join(WORKDIR, module_folder)
-
-        if not validate(module_folder):
-            Log.warning(
-                f"Module folder {module_folder} is not a valid terraform module."
-            )
-            Log.end_group()
-            continue
-
-        Log.start_group(f"Module {module_name}")
-
-        if not registry.module_exists(module_name, config.provider):
-
-            Log.info("The module selected does not exists.")
-            registry.create_module(module_name, config.provider, registry_name)
-        else:
-            Log.info(f"Module {module_name} already exists.")
-
-        module = registry.get_module(module_name, config.provider)
-
-        new_version = bump_module_version(
-            module,
-            base_version,
-            config.autobump_version,
+    if not validate(module_folder):
+        Log.warning(
+            f"Module folder {module_folder} is not a valid terraform module."
         )
-
-        if module.has_version(new_version):
-            Log.warning(f"Module version {new_version} already exists.")
-            if config.recreate:
-                Log.debug(f"Recreate option enabled, version will be deleted.")
-                registry.delete_version(module_name, config.provider, new_version)
-            else:
-                Log.end_group()
-                continue
-
-        tar_ball = package_module(module_name, module_folder)
-
-        module_version = registry.create_version(
-            module_name, config.provider, new_version
-        )
-
-        if module_version is not None:
-            registry.upload_version(module_version.links["upload"], tar_ball)
-
-        os.remove(tar_ball)
-
-        Log.info(f"Module {module_name} with version {new_version} created.")
-
         Log.end_group()
+
+    Log.start_group(f"Module {module_name}")
+
+    if not registry.module_exists(module_name, config.provider):
+
+        Log.info("The module selected does not exists.")
+        registry.create_module(module_name, config.provider, registry_name)
+    else:
+        Log.info(f"Module {module_name} already exists.")
+
+    module = registry.get_module(module_name, config.provider)
+
+    new_version = bump_module_version(
+        module,
+        base_version,
+        config.autobump_version,
+    )
+
+    if module.has_version(new_version):
+        Log.warning(f"Module version {new_version} already exists.")
+        if config.recreate:
+            Log.debug(f"Recreate option enabled, version will be deleted.")
+            registry.delete_version(module_name, config.provider, new_version)
+        else:
+            Log.end_group()
+
+    tar_ball = package_module(module_name, module_folder)
+
+    module_version = registry.create_version(
+        module_name, config.provider, new_version
+    )
+
+    if module_version is not None:
+        registry.upload_version(module_version.links["upload"], tar_ball)
+
+    os.remove(tar_ball)
+
+    Log.info(f"Module {module_name} with version {new_version} created.")
+
+    Log.end_group()
 
 
 def bump_module_version(
@@ -112,17 +109,19 @@ def validate(module_folder: str) -> bool:
 
 if __name__ == "__main__":
 
-    modules_list = sys.argv[1]
-    provider = sys.argv[2]
-    namespace = sys.argv[3]
-    registry_name = sys.argv[4]
-    token = sys.argv[5]
-    recreate = sys.argv[6]
-    base_version = sys.argv[7]
-    autobump_version = sys.argv[8]
+    module_name = sys.argv[1]
+    module_folder= sys.argv[2]
+    provider = sys.argv[3]
+    namespace = sys.argv[4]
+    registry_name = sys.argv[5]
+    token = sys.argv[6]
+    recreate = sys.argv[7]
+    base_version = sys.argv[8]
+    autobump_version = sys.argv[9]
 
     config = Config(
-        modules_list=json.loads(modules_list),
+        module_name=module_name,
+        module_folder=module_folder,
         provider=provider,
         namespace=namespace,
         base_version=base_version,
